@@ -1,0 +1,225 @@
+:root {
+    --primary-color: #4a90e2;
+    --bg-color: #f4f7f6;
+    --text-color: #333;
+    --card-bg: #ffffff;
+    --border-radius: 12px;
+    --shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    color: var(--text-color);
+}
+
+/* קונטיינר מרכזי לכל האפליקציה */
+.todoapp, .auth-container {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 450px;
+    margin-top: 60px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+/* כותרות */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 200;
+    text-align: center;
+    color: var(--primary-color);
+    margin: 30px 0;
+}
+
+/* טפסים (Login / Register) */
+.auth-form {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-input, .new-todo {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+.auth-input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.auth-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.auth-button:hover {
+    opacity: 0.9;
+}
+
+/* רשימת המשימות */
+.todo-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.todo-item:hover {
+    background: #fcfcfc;
+}
+
+.todo-item label {
+    flex-grow: 1;
+    margin-right: 15px;
+    font-size: 18px;
+}
+
+.todo-item.completed label {
+    color: #bbb;
+    text-decoration: line-through;
+}
+
+/* ניקוי ה-Checkbox */
+.toggle {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.destroy {
+    color: #ff5f5f;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.todo-item:hover .destroy {
+    opacity: 1;
+}
+
+.footer {
+    padding: 15px;
+    background: #fafafa;
+    border-top: 1px solid #eee;
+    font-size: 13px;
+    color: #888;
+    text-align: center;
+}
+
+/* קונטיינר הרשימה */
+.todo-list-modern {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* רווח בין משימה למשימה */
+}
+
+/* כרטיס משימה בודדת */
+.todo-card {
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.todo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+    border-color: #e0e0e0;
+}
+
+/* תוכן המשימה (טקסט וצ'קבוקס) */
+.todo-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.todo-text {
+    font-size: 16px;
+    color: #2d3436;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+/* עיצוב משימה שהושלמה */
+.todo-card.completed {
+    background: #fcfcfc;
+    opacity: 0.7;
+}
+
+.todo-card.completed .todo-text {
+    text-decoration: line-through;
+    color: #b2bec3;
+}
+
+/* עיצוב כפתור המחיקה (X) */
+.delete-action-btn {
+    background: #fff5f5;
+    color: #ff7675;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0; /* מוסתר כברירת מחדל */
+}
+
+.todo-card:hover .delete-action-btn {
+    opacity: 1; /* מופיע רק כשמעבירים עכבר על הכרטיס */
+}
+
+.delete-action-btn:hover {
+    background: #ff7675;
+    color: white;
+    transform: rotate(90deg);
+}
+
+/* עיצוב אינפוט הצ'קבוקס (מודרני) */
+.todo-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #4a90e2; /* צבע הכחול המודרני */
+}

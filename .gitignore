@@ -1,0 +1,15 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+appsettings.Development.json
+
+# React
+node_modules/
+build/
+
+# General
+.env
+.env.local
