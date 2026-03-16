@@ -1,15 +1,21 @@
-# .NET
+# Node / React
+node_modules/
+build/
+dist/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+
+# C# / .NET
 bin/
 obj/
 *.user
 *.suo
 .vs/
+*.pubxml
 appsettings.Development.json
 
-# React
-node_modules/
-build/
-
-# General
-.env
-.env.local
+# OS
+.DS_Store
+Thumbs.db
