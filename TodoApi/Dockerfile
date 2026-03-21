@@ -1,23 +1,25 @@
-# שלב 1: בנייה (Build)
-FROM node:18-alpine AS build
+# 1. שלב הבנייה (Build) - משתמשים ב-SDK כדי לקמפל את הקוד
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+WORKDIR /src
 
-# הגדרת תיקיית העבודה בתוך המכולה
-WORKDIR /app
+# העתקת קובץ הפרויקט הספציפי שלך
+COPY ["TodoApi.csproj", "./"]
 
-# העתקת קבצי ההגדרות והתקנת חבילות
-COPY package*.json ./
-RUN npm install
+# הרצת Restore להורדת כל חבילות ה-NuGet
+RUN dotnet restore "TodoApi.csproj"
 
-# העתקת שאר קבצי הפרויקט ובנייה
+# העתקת כל שאר הקבצים (Controllers, Models וכו')
 COPY . .
-RUN npm run build
 
-# שלב 2: הגשת הקבצים (Serving) בעזרת שרת קל
-FROM node:18-alpine
-RUN npm install -g serve
+# בנייה ופרסום של האפליקציה לתיקיית publish
+RUN dotnet publish "TodoApi.csproj" -c Release -o /app/publish
+
+# 2. שלב ההרצה (Runtime) - משתמשים בסביבה קלה רק להרצה
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
-COPY --from=build /app/build ./build
 
-# חשיפת הפורט והרצה
-EXPOSE 3000
-CMD ["serve", "-s", "build", "-l", "3000"]
+# העתקת התוצר המוגמר מהשלב הקודם
+COPY --from=build /app/publish .
+
+# הגדרת הפקודה שתפעיל את ה-API כשהמכולה עולה
+ENTRYPOINT ["dotnet", "TodoApi.dll"]
