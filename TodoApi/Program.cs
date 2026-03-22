@@ -12,14 +12,18 @@ var builder = WebApplication.CreateBuilder(args);
 var secretKey = "ThisIsAVerySecretKey123456789012";
 var keyBytes = Encoding.UTF8.GetBytes(secretKey);
 
+// --- הגדרת CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
+// --- הגדרת אימות (JWT) ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -42,40 +46,51 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.UseCors(); 
+// --- Middleware (סדר חשוב!) ---
+app.UseSwagger(); 
+app.UseSwaggerUI();
+
+app.UseCors(); // חייב לבוא לפני Authentication
 app.UseAuthentication();
 app.UseAuthorization();
 
-// --- נתיבי API ---
+// נתיב השורש - מעביר אוטומטית ל-Swagger כדי למנוע 404
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
-app.MapPost("/register", async (User user, ToDoDbContext db) => {
+// --- נתיבי API (הוספתי /api לכולם שיתאים ל-Client) ---
+
+app.MapPost("/api/register", async (User user, ToDoDbContext db) => {
     if (await db.Users.AnyAsync(u => u.Username == user.Username))
         return Results.BadRequest("Username exists.");
     db.Users.Add(user);
     await db.SaveChangesAsync();
-    return Results.Created($"/users/{user.Id}", user);
+    return Results.Created($"/api/users/{user.Id}", user);
 });
 
-app.MapPost("/login", (User user, ToDoDbContext db) => {
+app.MapPost("/api/login", (User user, ToDoDbContext db) => {
     var loginUser = db.Users.FirstOrDefault(u => u.Username == user.Username && u.Password == user.Password);
     if (loginUser == null) return Results.Unauthorized();
     var jwt = CreateJWT(loginUser);
     return Results.Ok(new { token = jwt });
 });
 
-app.MapGet("/items", async (ToDoDbContext db, ClaimsPrincipal user) => {
-    var userId = int.Parse(user.FindFirst("id")?.Value ?? "0");
+app.MapGet("/api/items", async (ToDoDbContext db, ClaimsPrincipal user) => {
+    var userIdClaim = user.FindFirst("id")?.Value;
+    if (userIdClaim == null) return Results.Unauthorized();
+    var userId = int.Parse(userIdClaim);
     return Results.Ok(await db.Items.Where(i => i.UserId == userId).ToListAsync());
 }).RequireAuthorization();
 
-app.MapPost("/items", async (ToDoDbContext db, Item item, ClaimsPrincipal user) => {
-    item.UserId = int.Parse(user.FindFirst("id")?.Value ?? "0");
+app.MapPost("/api/items", async (ToDoDbContext db, Item item, ClaimsPrincipal user) => {
+    var userIdClaim = user.FindFirst("id")?.Value;
+    if (userIdClaim == null) return Results.Unauthorized();
+    item.UserId = int.Parse(userIdClaim);
     db.Items.Add(item);
     await db.SaveChangesAsync();
-    return Results.Created($"/items/{item.Id}", item);
+    return Results.Created($"/api/items/{item.Id}", item);
 }).RequireAuthorization();
 
-app.MapPut("/items/{id}", async (int id, Item inputItem, ToDoDbContext db) => {
+app.MapPut("/api/items/{id}", async (int id, Item inputItem, ToDoDbContext db) => {
     var todo = await db.Items.FindAsync(id);
     if (todo is null) return Results.NotFound();
     todo.IsComplete = inputItem.IsComplete;
@@ -83,7 +98,7 @@ app.MapPut("/items/{id}", async (int id, Item inputItem, ToDoDbContext db) => {
     return Results.NoContent();
 }).RequireAuthorization();
 
-app.MapDelete("/items/{id}", async (int id, ToDoDbContext db) => {
+app.MapDelete("/api/items/{id}", async (int id, ToDoDbContext db) => {
     var todo = await db.Items.FindAsync(id);
     if (todo is null) return Results.NotFound();
     db.Items.Remove(todo);
@@ -91,12 +106,15 @@ app.MapDelete("/items/{id}", async (int id, ToDoDbContext db) => {
     return Results.NoContent();
 }).RequireAuthorization();
 
+// פונקציה ליצירת JWT
 string CreateJWT(User user) {
-    var claims = new[] { new Claim("id", user.Id.ToString()), new Claim("name", user.Username) };
+    var claims = new[] { 
+        new Claim("id", user.Id.ToString()), 
+        new Claim("name", user.Username) 
+    };
     var credentials = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256);
     var token = new JwtSecurityToken("my-api", "my-api", claims, expires: DateTime.Now.AddDays(7), signingCredentials: credentials);
     return new JwtSecurityTokenHandler().WriteToken(token);
 }
 
-if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 app.Run();
