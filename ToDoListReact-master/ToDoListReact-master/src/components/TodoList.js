@@ -12,8 +12,9 @@ function TodoList() {
 
   async function getTodos() {
     try {
-      const todos = await service.getTasks();
-      setTodos(todos);
+      const data = await service.getTasks();
+      // בדיקה שהנתונים הם אכן מערך, אם לא - הופך למערך ריק כדי למנוע קריסה
+      setTodos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("שגיאה בטעינת המשימות:", error);
     }
@@ -25,8 +26,8 @@ function TodoList() {
 
     try {
       await service.addTask(newTodo);
-      setNewTodo(""); // איפוס תיבת הטקסט
-      await getTodos(); // רענון הרשימה מהשרת
+      setNewTodo(""); 
+      await getTodos(); 
     } catch (error) {
       console.error("שגיאה בהוספת משימה:", error);
     }
@@ -34,9 +35,11 @@ function TodoList() {
 
   async function updateCompleted(todo, isComplete) {
     try {
-      // שליחת ה-ID, השם והסטטוס החדש לשרת
-      await service.setCompleted(todo.id, todo.name, isComplete);
-      await getTodos(); // רענון כדי לוודא שהשינוי נשמר ב-DB
+      // שימוש ב-|| כדי לתמוך גם ב-Name וגם ב-name
+      const id = todo.id || todo.Id;
+      const name = todo.name || todo.Name;
+      await service.setCompleted(id, name, isComplete);
+      await getTodos();
     } catch (error) {
       console.error("שגיאה בעדכון המשימה:", error);
     }
@@ -45,7 +48,7 @@ function TodoList() {
   async function deleteTodo(id) {
     try {
       await service.deleteTask(id);
-      await getTodos(); // רענון הרשימה
+      await getTodos();
     } catch (error) {
       console.error("שגיאה במחיקת משימה:", error);
     }
@@ -70,37 +73,44 @@ function TodoList() {
 
         <main className="main">
           <ul className="todo-list-modern">
-            {todos.map(todo => (
-              <li key={todo.id} className={`todo-card ${todo.isComplete ? "completed" : ""}`}>
-                <div className="todo-content">
-                  <div className="checkbox-wrapper">
-                    <input
-                      className="todo-checkbox"
-                      type="checkbox"
-                      checked={todo.isComplete}
-                      onChange={(e) => updateCompleted(todo, e.target.checked)}
-                      id={`todo-${todo.id}`}
-                    />
+            {todos.map(todo => {
+              // חילוץ נתונים בצורה בטוחה (תמיכה באותיות גדולות/קטנות מהשרת)
+              const taskName = todo.name || todo.Name || "משימה ללא שם";
+              const isDone = todo.isComplete !== undefined ? todo.isComplete : todo.IsComplete;
+              const taskId = todo.id || todo.Id;
+
+              return (
+                <li key={taskId} className={`todo-card ${isDone ? "completed" : ""}`}>
+                  <div className="todo-content">
+                    <div className="checkbox-wrapper">
+                      <input
+                        className="todo-checkbox"
+                        type="checkbox"
+                        checked={isDone || false}
+                        onChange={(e) => updateCompleted(todo, e.target.checked)}
+                        id={`todo-${taskId}`}
+                      />
+                    </div>
+                    <span className="todo-text">{taskName}</span>
                   </div>
-                  <span className="todo-text">{todo.name}</span>
-                </div>
-                
-                <button 
-                  className="delete-action-btn" 
-                  onClick={() => deleteTodo(todo.id)}
-                  title="מחק משימה"
-                >
-                  <span className="icon-trash">✕</span>
-                </button>
-              </li>
-            ))}
+                  
+                  <button 
+                    className="delete-action-btn" 
+                    onClick={() => deleteTodo(taskId)}
+                    title="מחק משימה"
+                  >
+                    <span className="icon-trash">✕</span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </main>
 
         {todos.length > 0 ? (
           <footer className="todo-footer">
             <span className="todo-count">
-              נותרו <strong>{todos.filter(t => !t.isComplete).length}</strong> משימות לביצוע
+              נותרו <strong>{todos.filter(t => !(t.isComplete || t.IsComplete)).length}</strong> משימות לביצוע
             </span>
           </footer>
         ) : (

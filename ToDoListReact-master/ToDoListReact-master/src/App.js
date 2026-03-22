@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import service from './service';
 import TodoList from './components/TodoList';
 import Login from './components/Login';
-import Register from './components/Register'; // ודאי שייבאת את זה
+import Register from './components/Register'; 
 
 function App() {
   const [user, setUser] = useState(service.getUserInfo());
-  const [showRegister, setShowRegister] = useState(false); // מצב למעבר בין לוגין להרשמה
+  const [showRegister, setShowRegister] = useState(false); 
 
   const handleLogin = () => {
     setUser(service.getUserInfo());
