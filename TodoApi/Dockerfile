@@ -1,25 +1,21 @@
-# 1. שלב הבנייה (Build) - משתמשים ב-SDK כדי לקמפל את הקוד
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+# שלב 1: בנייה - נשתמש ב-SDK של גרסה 9.0
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# העתקת קובץ הפרויקט הספציפי שלך
+# העתקת קובץ הפרויקט
 COPY ["TodoApi.csproj", "./"]
-
-# הרצת Restore להורדת כל חבילות ה-NuGet
 RUN dotnet restore "TodoApi.csproj"
 
-# העתקת כל שאר הקבצים (Controllers, Models וכו')
+# העתקת שאר הקבצים ובנייה
 COPY . .
-
-# בנייה ופרסום של האפליקציה לתיקיית publish
 RUN dotnet publish "TodoApi.csproj" -c Release -o /app/publish
 
-# 2. שלב ההרצה (Runtime) - משתמשים בסביבה קלה רק להרצה
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+# שלב 2: הרצה - נשתמש ב-Runtime של גרסה 9.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
-
-# העתקת התוצר המוגמר מהשלב הקודם
 COPY --from=build /app/publish .
 
-# הגדרת הפקודה שתפעיל את ה-API כשהמכולה עולה
+# חשיפת פורט
+EXPOSE 80
+
 ENTRYPOINT ["dotnet", "TodoApi.dll"]
