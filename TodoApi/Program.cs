@@ -8,6 +8,8 @@ using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+
 // הגדרת מפתח סודי (חייב להיות לפחות 32 תווים!)
 var secretKey = "ThisIsAVerySecretKey123456789012";
 var keyBytes = Encoding.UTF8.GetBytes(secretKey);
