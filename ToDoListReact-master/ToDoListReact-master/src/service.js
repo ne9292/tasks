@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-axios.defaults.baseURL = "https://authserver-74p8.onrender.com/api";
+axios.defaults.baseURL ="https://authserver-74p8.onrender.com/api";
 
 axios.interceptors.request.use(config => {
     const token = localStorage.getItem("token");
